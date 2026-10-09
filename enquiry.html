@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en-GB"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Bathroom enquiry · Riverside</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700;800&display=swap">
+<style>
+:root{--ink:#322F31;--body:#626D7A;--orange:#EB6832;--orange-deep:#C2501F;--char:#1E1C1D;--line:#E7E3E0;--wash:#F8F6F4;--white:#FFFFFF;--ok:#1F8F55}
+*{box-sizing:border-box}
+body{margin:0;background:var(--wash);color:var(--body);font-family:"Plus Jakarta Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-size:16px;line-height:1.55}
+header{background:var(--char);color:#FFFFFF;padding:22px 20px}
+.wrap{max-width:1100px;margin:0 auto;padding-inline:20px}
+header .wrap{padding-inline:0;display:flex;flex-direction:column;gap:4px}
+.eyebrow{font-size:12px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:var(--orange)}
+h1{margin:0;font-size:clamp(24px,4vw,34px);line-height:1.15;font-weight:800;color:#FFFFFF}
+h2{margin:0;font-size:20px;color:var(--ink);font-weight:800}
+main{padding-block:28px 48px;display:flex;flex-direction:column;gap:22px}
+.card{background:var(--white);border:1px solid var(--line);border-radius:18px;padding:22px;display:flex;flex-direction:column;gap:16px}
+.details{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px 22px}
+.details div{display:flex;flex-direction:column;gap:2px;min-width:0}
+.details b{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--body)}
+.details span{font-size:17px;font-weight:700;color:var(--ink);overflow-wrap:anywhere}
+.actions{display:flex;flex-wrap:wrap;gap:10px}
+.btn{display:inline-flex;align-items:center;gap:8px;text-decoration:none;font-weight:700;font-size:15px;padding:12px 18px;border-radius:999px;border:1.5px solid var(--line);color:var(--ink);background:var(--white)}
+.btn.primary{background:var(--orange);border-color:var(--orange);color:#1E1C1D}
+.btn.wa{background:var(--ok);border-color:var(--ok);color:#FFFFFF}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+figure{margin:0;display:flex;flex-direction:column;gap:8px;min-width:0}
+figure a{display:block;border-radius:14px;overflow:hidden;background:var(--line)}
+figure img{width:100%;display:block;aspect-ratio:4/3;object-fit:cover}
+figcaption{display:flex;justify-content:space-between;align-items:center;gap:8px;font-weight:700;color:var(--ink);font-size:15px}
+.chosen a{outline:4px solid var(--orange);outline-offset:-4px}
+.pill{font-size:12px;font-weight:800;letter-spacing:.04em;padding:3px 10px;border-radius:999px;background:var(--orange);color:#1E1C1D;white-space:nowrap}
+.muted{font-size:14px}
+.status{padding:40px 20px;text-align:center;font-weight:700;color:var(--ink)}
+@media (max-width:640px){.grid{grid-template-columns:1fr}}
+</style></head>
+<body>
+<header><div class="wrap"><span class="eyebrow">Riverside bathroom visualiser</span><h1 id="title">Bathroom enquiry</h1><span class="muted" id="received" style="color:#CFC8C2"></span></div></header>
+<main class="wrap" id="main"><p class="status" id="status">Loading the enquiry…</p></main>
+<script>
+(function () {
+  var CFG = {
+    endpoint: "https://ueaqhcspcsiojhxmljfs.supabase.co/functions/v1/visualise",
+    publicKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVlYXFoY3NwY3Npb2poeG1samZzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEyMDE3MDksImV4cCI6MjEwNjc3NzcwOX0.KjvokuNh_OephhsXjWdugKxdH4fHQ2mEds10qg4eWSY"
+  };
+  var VERS = { A: "Design A · their layout", B: "Design B · redesigned" };
+  var main = document.getElementById("main"), status = document.getElementById("status");
+  var id = (new URLSearchParams(location.search).get("id") || "").toLowerCase();
+  function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+  function fail(msg) { status.textContent = msg; }
+  if (!/^[0-9a-f-]{36}$/.test(id)) { fail("This enquiry link isn't complete. Open it again from the WhatsApp message or email."); return; }
+  fetch(CFG.endpoint, { method: "POST", headers: { "Content-Type": "application/json", "Authorization": "Bearer " + CFG.publicKey, "apikey": CFG.publicKey }, body: JSON.stringify({ mode: "view", sid: id }) })
+    .then(function (r) { if (r.status === 404) throw new Error("missing"); if (!r.ok) throw new Error("http"); return r.json(); })
+    .then(render)
+    .catch(function (e) { fail(e && e.message === "missing" ? "We couldn't find this enquiry. The link may be wrong or the photos may have been removed." : "The enquiry couldn't load. Check your connection and refresh."); });
+
+  function render(data) {
+    status.remove();
+    var enq = data.enquiry || {}, d = enq.details || {}, imgs = data.images || {}, chosen = enq.chosen;
+    if (d.name) document.getElementById("title").textContent = d.name + " · " + (d.typeLabel || "Bathroom");
+    if (enq.received) document.getElementById("received").textContent = "Received " + new Date(enq.received).toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short" });
+
+    var c1 = el("section", "card");
+    c1.appendChild(el("h2", "", "Customer"));
+    if (!data.enquiry) c1.appendChild(el("p", "muted", "This customer created designs but hasn't sent their details yet."));
+    var det = el("div", "details");
+    [["Name", d.name], ["Mobile", d.phone], ["Postcode", d.postcode], ["Bathroom", d.typeLabel], ["Guide price", d.price],
+     ["Chosen design", chosen ? "Set " + chosen.run + ", " + VERS[chosen.version] : "–"]].forEach(function (p) {
+      var w = el("div"); w.appendChild(el("b", "", p[0])); w.appendChild(el("span", "", p[1] || "–")); det.appendChild(w);
+    });
+    c1.appendChild(det);
+    if (d.phone) {
+      var digits = String(d.phone).replace(/[^\d+]/g, ""), intl = digits.replace(/^\+/, "").replace(/^0/, "44");
+      var a = el("div", "actions");
+      var call = el("a", "btn primary", "Call " + d.phone); call.href = "tel:" + digits; a.appendChild(call);
+      var wa = el("a", "btn wa", "WhatsApp " + (d.name ? d.name.split(" ")[0] : "customer")); wa.href = "https://wa.me/" + intl; wa.target = "_blank"; wa.rel = "noopener"; a.appendChild(wa);
+      c1.appendChild(a);
+    }
+    main.appendChild(c1);
+
+    var c2 = el("section", "card");
+    c2.appendChild(el("h2", "", "Their bathroom today"));
+    var g0 = el("div", "grid");
+    g0.appendChild(fig(imgs.orig, "Before", false));
+    c2.appendChild(g0);
+    main.appendChild(c2);
+
+    var byRun = {};
+    (imgs.results || []).forEach(function (r) { (byRun[r.run] = byRun[r.run] || {})[r.version] = r.url; });
+    Object.keys(byRun).sort(function (a, b) { return a - b; }).forEach(function (run) {
+      var c = el("section", "card");
+      c.appendChild(el("h2", "", "Design set " + run));
+      var g = el("div", "grid");
+      ["A", "B"].forEach(function (v) {
+        if (!byRun[run][v]) return;
+        g.appendChild(fig(byRun[run][v], VERS[v], !!chosen && String(chosen.run) === String(run) && chosen.version === v));
+      });
+      c.appendChild(g); main.appendChild(c);
+    });
+    main.appendChild(el("p", "muted", "Tap any picture to open it full size. Picture links last 30 days."));
+  }
+  function fig(url, label, isChosen) {
+    var f = el("figure", isChosen ? "chosen" : "");
+    if (url) { var a = el("a"); a.href = url; a.target = "_blank"; a.rel = "noopener"; var im = el("img"); im.src = url; im.alt = label; im.loading = "lazy"; a.appendChild(im); f.appendChild(a); }
+    else f.appendChild(el("p", "muted", "Picture not available."));
+    var cap = el("figcaption"); cap.appendChild(el("span", "", label)); if (isChosen) cap.appendChild(el("span", "pill", "Their pick")); f.appendChild(cap);
+    return f;
+  }
+})();
+</script>
+</body></html>

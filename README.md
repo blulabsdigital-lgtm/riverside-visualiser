@@ -1,15 +1,10 @@
-# Riverside Bathroom Visualiser
+# Riverside bathroom visualiser
 
-A customer uploads a photo of their bathroom and sees it finished to Riverside Construction Group's two standards:
+Customer-facing bathroom visualiser for Riverside Construction Group, built by Blulabs.
 
-- **Mid-range**: £8,000 to £14,000
-- **Premium**: £14,000 to £20,000
+- `index.html`: demo page (not indexed by search engines).
+- `embed.html`: the snippet for Alex's Webflow site. It is under 2 KB and holds a normal, crawlable heading; the tool itself (`visualiser.js`) loads with `defer` and only mounts when a visitor scrolls near it, so it adds nothing to the page's first load.
+- `visualiser.js`: the tool. Steps: bathroom type, contact details, photo, Design A and Design B, book a consultation, WhatsApp enquiry.
+- `enquiry.html`: the page Alex opens from the WhatsApp message or email, with the customer's details, their photo and every design.
 
-Built by Blulabs for Riverside Construction Group.
-
-## Files
-
-- `index.html`: the demo page (served by GitHub Pages).
-- `embed.html`: the same tool as a single block to paste into a Webflow Embed element on riversidepropertysolutions.co.uk.
-
-The image generation runs in a private Supabase function; no keys or instructions for the image service are stored in this repository.
+The image engine runs privately on Supabase; no keys or prompts live in this repo.
