@@ -327,6 +327,9 @@
       var io = new IntersectionObserver(function (es) { if (es.some(function (e) { return e.isIntersecting; })) { io.disconnect(); mount(); } }, { rootMargin: "800px 0px" });
       io.observe(root);
     } else mount();
+    /* Fallback: mount once the page has finished loading and is idle, so the tool is always ready without touching first load. */
+    var later = function () { (window.requestIdleCallback || function (f) { setTimeout(f, 1500); })(mount, { timeout: 4000 }); };
+    if (document.readyState === "complete") later(); else window.addEventListener("load", later);
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start); else start();
 })();
