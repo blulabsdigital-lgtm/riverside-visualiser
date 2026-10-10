@@ -79,10 +79,17 @@ figcaption{display:flex;justify-content:space-between;align-items:center;gap:8px
     }
     main.appendChild(c1);
 
+    if (enq.cancelled) {
+      var cx = el("section", "card"); cx.style.borderColor = "#C9473C"; cx.style.background = "#FFF3F1";
+      cx.appendChild(el("h2", "", "Cancelled by the customer"));
+      cx.appendChild(el("p", "", "They cancelled this enquiry on " + new Date(enq.cancelled).toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short" }) + ", so there's no need to follow it up."));
+      main.appendChild(cx);
+    }
+    var photos = (imgs.photos && imgs.photos.length) ? imgs.photos : [{ n: 1, url: imgs.orig }];
     var c2 = el("section", "card");
-    c2.appendChild(el("h2", "", "Their bathroom today"));
+    c2.appendChild(el("h2", "", photos.length > 1 ? "Their bathroom today · " + photos.length + " photos" : "Their bathroom today"));
     var g0 = el("div", "grid");
-    g0.appendChild(fig(imgs.orig, "Before", false));
+    photos.forEach(function (ph) { g0.appendChild(fig(ph.url, photos.length > 1 ? "Photo " + ph.n : "Before", false)); });
     c2.appendChild(g0);
     main.appendChild(c2);
 
