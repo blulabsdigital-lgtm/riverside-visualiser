@@ -56,7 +56,8 @@ figcaption{display:flex;justify-content:space-between;align-items:center;gap:8px
 
   function render(data) {
     status.remove();
-    var enq = data.enquiry || {}, d = enq.details || {}, imgs = data.images || {}, chosen = enq.chosen;
+    var enq = data.enquiry || {}, d = enq.details || {}, imgs = data.images || {};
+    var starred = (enq.starred && enq.starred.length) ? enq.starred : (enq.chosen ? [enq.chosen] : []);
     if (d.name) document.getElementById("title").textContent = d.name + " · " + (d.typeLabel || "Bathroom");
     if (enq.received) document.getElementById("received").textContent = "Received " + new Date(enq.received).toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short" });
 
@@ -65,7 +66,7 @@ figcaption{display:flex;justify-content:space-between;align-items:center;gap:8px
     if (!data.enquiry) c1.appendChild(el("p", "muted", "This customer created designs but hasn't sent their details yet."));
     var det = el("div", "details");
     [["Name", d.name], ["Mobile", d.phone], ["Postcode", d.postcode], ["Bathroom", d.typeLabel], ["Guide price", d.price],
-     ["Chosen design", chosen ? "Set " + chosen.run + ", " + VERS[chosen.version] : "–"]].forEach(function (p) {
+     [starred.length === 1 ? "Starred design" : "Starred designs", starred.length ? starred.map(function (x) { return "Set " + x.run + " " + x.version; }).join(", ") : "–"]].forEach(function (p) {
       var w = el("div"); w.appendChild(el("b", "", p[0])); w.appendChild(el("span", "", p[1] || "–")); det.appendChild(w);
     });
     c1.appendChild(det);
@@ -85,25 +86,20 @@ figcaption{display:flex;justify-content:space-between;align-items:center;gap:8px
     c2.appendChild(g0);
     main.appendChild(c2);
 
-    var byRun = {};
-    (imgs.results || []).forEach(function (r) { (byRun[r.run] = byRun[r.run] || {})[r.version] = r.url; });
-    Object.keys(byRun).sort(function (a, b) { return a - b; }).forEach(function (run) {
-      var c = el("section", "card");
-      c.appendChild(el("h2", "", "Design set " + run));
-      var g = el("div", "grid");
-      ["A", "B"].forEach(function (v) {
-        if (!byRun[run][v]) return;
-        g.appendChild(fig(byRun[run][v], VERS[v], !!chosen && String(chosen.run) === String(run) && chosen.version === v));
-      });
-      c.appendChild(g); main.appendChild(c);
-    });
+    var c3 = el("section", "card");
+    var res = imgs.results || [];
+    c3.appendChild(el("h2", "", res.length === 1 ? "The design they starred" : "The " + res.length + " designs they starred"));
+    if (!res.length) c3.appendChild(el("p", "muted", data.enquiry ? "No starred designs were saved with this enquiry." : "Designs appear here once the customer sends their enquiry."));
+    var g = el("div", "grid");
+    res.forEach(function (r) { g.appendChild(fig(r.url, "Set " + r.run + " · " + VERS[r.version], true)); });
+    c3.appendChild(g); main.appendChild(c3);
     main.appendChild(el("p", "muted", "Tap any picture to open it full size. Picture links last 30 days."));
   }
   function fig(url, label, isChosen) {
     var f = el("figure", isChosen ? "chosen" : "");
     if (url) { var a = el("a"); a.href = url; a.target = "_blank"; a.rel = "noopener"; var im = el("img"); im.src = url; im.alt = label; im.loading = "lazy"; a.appendChild(im); f.appendChild(a); }
     else f.appendChild(el("p", "muted", "Picture not available."));
-    var cap = el("figcaption"); cap.appendChild(el("span", "", label)); if (isChosen) cap.appendChild(el("span", "pill", "Their pick")); f.appendChild(cap);
+    var cap = el("figcaption"); cap.appendChild(el("span", "", label)); if (isChosen) cap.appendChild(el("span", "pill", "★ Starred")); f.appendChild(cap);
     return f;
   }
 })();
