@@ -71,7 +71,7 @@ figcaption{display:flex;justify-content:space-between;align-items:center;gap:8px
     });
     c1.appendChild(det);
     if (d.phone) {
-      var digits = String(d.phone).replace(/[^\d+]/g, ""), intl = digits.replace(/^\+/, "").replace(/^0/, "44");
+      var digits = String(d.phone).replace(/\(0\)/g, "").replace(/[^\d+]/g, ""), intl = digits.replace(/^(\+|00)/, "").replace(/^0/, "44");
       var a = el("div", "actions");
       var call = el("a", "btn primary", "Call " + d.phone); call.href = "tel:" + digits; a.appendChild(call);
       var wa = el("a", "btn wa", "WhatsApp " + (d.name ? d.name.split(" ")[0] : "customer")); wa.href = "https://wa.me/" + intl; wa.target = "_blank"; wa.rel = "noopener"; a.appendChild(wa);
