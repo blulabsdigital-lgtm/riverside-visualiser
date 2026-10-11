@@ -253,7 +253,7 @@
     slot.status = "loading"; paint();
     var ph = state.photos[run.photo - 1];
     post({ mode: "visualise", image: ph.url, mime_type: "image/jpeg", version: v, type: state.type, style: slot.style, run: run.run,
-      sid: state.sid, store_photo: run.store && v === "A" ? run.photo : 0, aspect: ph.aspect, size: CFG.gen.size, think: CFG.gen.think, frame: ph.frame || undefined }, state.ctrl.signal)
+      sid: state.sid, store_photo: run.store ? run.photo : 0, aspect: ph.aspect, size: CFG.gen.size, think: CFG.gen.think, frame: ph.frame || undefined }, state.ctrl.signal)
       .then(function (res) { if (!res.ok) throw new Error("http " + res.status); return res.json(); })
       .then(function (d) {
         if (gen !== state.gen) return;
@@ -454,7 +454,7 @@
       throw new Error("http " + r.status);
     }).catch(function (e) {
       if (tries <= 1) throw e;
-      return new Promise(function (res) { setTimeout(res, 1500 * (4 - tries)); }).then(function () { return fire(body, tries - 1); });
+      return new Promise(function (res) { setTimeout(res, 1500 * (5 - tries)); }).then(function () { return fire(body, tries - 1); });
     });
   }
   function sendEnquiry() {
