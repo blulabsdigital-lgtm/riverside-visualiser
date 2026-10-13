@@ -31,6 +31,14 @@ figcaption{display:flex;justify-content:space-between;align-items:center;gap:8px
 .chosen a{outline:4px solid var(--orange);outline-offset:-4px}
 .pill{font-size:12px;font-weight:800;letter-spacing:.04em;padding:3px 10px;border-radius:999px;background:var(--orange);color:#1E1C1D;white-space:nowrap}
 .muted{font-size:14px}
+.cmp{position:relative;border-radius:14px;overflow:hidden;background:var(--line);user-select:none;touch-action:pan-y}
+.cmp img{display:block;width:100%;height:auto}
+.cmp .bef{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;clip-path:inset(0 calc(100% - var(--p,50%)) 0 0)}
+.cmp input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:ew-resize;margin:0}
+.cmp .ln{position:absolute;top:0;bottom:0;left:var(--p,50%);width:3px;margin-left:-1.5px;background:#fff;box-shadow:0 0 10px rgba(0,0,0,.4);pointer-events:none}
+.cmp .tg{position:absolute;bottom:10px;font-size:12px;font-weight:800;padding:5px 10px;border-radius:999px;pointer-events:none}
+.cmp .tg.l{left:10px;background:rgba(30,28,29,.8);color:#fff}.cmp .tg.r{right:10px;background:var(--orange);color:#1E1C1D}
+.finish{font-size:14px;color:var(--body);font-weight:600}
 .status{padding:40px 20px;text-align:center;font-weight:700;color:var(--ink)}
 @media (max-width:640px){.grid{grid-template-columns:1fr}}
 </style></head>
@@ -98,9 +106,41 @@ figcaption{display:flex;justify-content:space-between;align-items:center;gap:8px
     c3.appendChild(el("h2", "", res.length === 1 ? "The design they starred" : "The " + res.length + " designs they starred"));
     if (!res.length) c3.appendChild(el("p", "muted", data.enquiry ? "No starred designs were saved with this enquiry." : "Designs appear here once the customer sends their enquiry."));
     var g = el("div", "grid");
-    res.forEach(function (r) { g.appendChild(fig(r.url, "Set " + r.run + " · " + VERS[r.version], true)); });
+    var runInfo = {}; (enq.runs || []).forEach(function (x) { runInfo[x.run] = x; });
+    var photoUrl = {}; photos.forEach(function (ph) { photoUrl[ph.n] = ph.url; });
+    res.forEach(function (r) {
+      var info = runInfo[r.run] || {}, style = info[r.version], before = photoUrl[info.photo || 1] || imgs.orig;
+      g.appendChild(compare(before, r.url, "Set " + r.run + " · " + VERS[r.version], style ? FINISH[style] || style : ""));
+    });
     c3.appendChild(g); main.appendChild(c3);
-    main.appendChild(el("p", "muted", "Tap any picture to open it full size. Picture links last 30 days."));
+    main.appendChild(el("p", "muted", "Drag across a design to compare it with their room. Photos are kept with the enquiry; this page always shows them."));
+  }
+  // The finish names behind each design, so Alex knows what to quote.
+  var FINISH = { "corten-slate": "Corten-effect walls, slate floor, black grid screen", "green-marble-slab": "Green marble slab, beige tiles, dark vanity",
+    "warm-stone-loft": "Warm stone-effect porcelain, grey handleless vanity", "grey-concrete-round": "Grey concrete-effect, round backlit mirror",
+    "encaustic-green": "Encaustic feature wall, green tiles, fluted oak, brass", "charcoal-niches": "Charcoal slate, lit niches, matt black",
+    "green-brass": "Deep green tiles, brushed brass", "botanical-feature": "Botanical feature wall, fluted wood vanity",
+    "white-marble-navy": "White Calacatta marble, navy vanity", "travertine-brass": "Travertine/onyx porcelain, brushed brass, oak",
+    "concrete-industrial": "Pale concrete, cast basin, black industrial", "navy-panel-encaustic": "Navy panelling, encaustic floor, oak shelves",
+    "oak-vessel": "Grey marble, oak worktop, vessel basin", "marble-green-wc": "White marble, green WC wall, grey vanity", "onyx-slab": "Blue-green onyx slab, chrome" };
+  // Before/after slider: drag to compare the customer's room with the design.
+  function compare(before, after, label, finish) {
+    var f = el("figure", "chosen");
+    if (!after) { f.appendChild(el("p", "muted", "Picture not available.")); return f; }
+    var box = el("div", "cmp");
+    var a = el("img"); a.src = after; a.alt = label; a.loading = "lazy"; box.appendChild(a);
+    if (before) {
+      var b = el("img", "bef"); b.src = before; b.alt = "Before"; b.loading = "lazy"; box.appendChild(b);
+      box.appendChild(el("span", "ln")); box.appendChild(el("span", "tg l", "Today")); box.appendChild(el("span", "tg r", "Design"));
+      var r = el("input"); r.type = "range"; r.min = 0; r.max = 100; r.value = 50; r.setAttribute("aria-label", "Compare today with " + label);
+      r.addEventListener("input", function () { box.style.setProperty("--p", r.value + "%"); }); box.appendChild(r);
+    }
+    f.appendChild(box);
+    var cap = el("figcaption"); var t = el("span", "", label); cap.appendChild(t);
+    var open = el("a", "pill", "Open full size"); open.href = after; open.target = "_blank"; open.rel = "noopener"; open.style.textDecoration = "none"; cap.appendChild(open);
+    f.appendChild(cap);
+    if (finish) f.appendChild(el("span", "finish", "Finish: " + finish));
+    return f;
   }
   function fig(url, label, isChosen) {
     var f = el("figure", isChosen ? "chosen" : "");
