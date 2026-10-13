@@ -2,7 +2,15 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#1D1D1E">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Riverside">
+<link rel="manifest" href="preview.webmanifest">
+<link rel="apple-touch-icon" href="preview-icon.png">
+<link rel="icon" href="preview-icon.png">
 <meta name="robots" content="noindex,nofollow">
 <title>Riverside Construction Group | Bathrooms, Kitchens & Renovations</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -10,12 +18,18 @@
 <style>
 :root{--ink:#1D1D1E;--gold:#D4AC5A;--paper:#F6F3EE;--muted:#6B6760}
 *{box-sizing:border-box}
-html{scroll-behavior:smooth}
+html{scroll-behavior:smooth;background:#1D1D1E}
 body{margin:0;font-family:Manrope,system-ui,sans-serif;color:var(--ink);background:#fff;font-size:16px;line-height:1.55}
 a{color:inherit;text-decoration:none}
 .wrap{max-width:1200px;margin:0 auto;padding:0 24px}
 /* header */
-.top{position:sticky;top:0;z-index:50;background:rgba(29,29,30,.96);backdrop-filter:blur(8px);color:#fff}
+.top{position:sticky;top:0;z-index:50;background:rgba(29,29,30,.97);backdrop-filter:blur(8px);color:#fff;padding-top:env(safe-area-inset-top)}
+#rvz{scroll-margin-top:calc(70px + env(safe-area-inset-top))}
+.drawer{display:none;position:fixed;inset:0;z-index:60;background:#1D1D1E;color:#fff;padding:calc(90px + env(safe-area-inset-top)) 24px 24px;flex-direction:column;gap:6px}
+.drawer.open{display:flex}
+.drawer a{font-size:24px;font-weight:700;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.08)}
+.drawer .btn{margin-top:20px;justify-content:center;border-bottom:0;font-size:17px}
+.drawer .x{position:absolute;top:calc(18px + env(safe-area-inset-top));right:16px;width:44px;height:44px;border-radius:10px;border:1px solid rgba(255,255,255,.25);background:none;color:#fff;font-size:22px}
 .top .wrap{display:flex;align-items:center;justify-content:space-between;height:78px;gap:24px}
 .brand img{height:52px;width:auto;display:block;filter:url(#pv-gold)}
 .menu{display:flex;gap:28px;font-weight:600;font-size:15px}
@@ -67,7 +81,16 @@ a{color:inherit;text-decoration:none}
   .foot .grid{grid-template-columns:1fr}
   .sec{padding:64px 0}.vis{padding:56px 0}
   .wrap{padding:0 16px}
-  .brand img{height:42px}
+  .brand img{height:40px}
+  .top .wrap{height:64px}
+  .hero{min-height:calc(100svh - 64px - env(safe-area-inset-top));align-items:center}
+  .hero .wrap{padding-top:32px;padding-bottom:40px}
+  .hero h1{font-size:44px}
+  .hero p{font-size:16px;margin-bottom:24px}
+  .cta .btn{flex:1 1 100%;justify-content:center;padding:15px 20px}
+  .vis{padding:20px 0 28px}
+  .vis .rvz{margin:0 8px!important;padding:32px 14px!important;border-radius:22px!important}
+  .trust .wrap{padding-top:26px;padding-bottom:26px}
 }
 </style>
 </head>
@@ -79,9 +102,15 @@ a{color:inherit;text-decoration:none}
     <a class="brand" href="#"><img src="https://cdn.prod.website-files.com/687f8bc8806320c2296ac1e3/69392eaa85728d65fac25e5e_master-new.png" alt="Riverside Construction Group"></a>
     <nav class="menu"><a href="#">Home</a><a href="#">About Us</a><a href="#">Services</a><a href="#rvz">Bathroom Visualiser</a><a href="#">Reviews</a><a href="#">Portfolio</a></nav>
     <a class="btn btn-gold" href="#rvz">Contact us</a>
-    <button class="burger" aria-label="Menu">☰</button>
+    <button class="burger" aria-label="Menu" onclick="document.getElementById('drawer').classList.add('open')">☰</button>
   </div>
 </header>
+
+<nav class="drawer" id="drawer" onclick="if(event.target.tagName==='A'||event.target.classList.contains('x'))this.classList.remove('open')">
+  <button class="x" aria-label="Close">✕</button>
+  <a href="#">Home</a><a href="#">About Us</a><a href="#">Services</a><a href="#rvz">Bathroom Visualiser</a><a href="#">Reviews</a><a href="#">Portfolio</a>
+  <a class="btn btn-gold" href="#rvz">Contact us</a>
+</nav>
 
 <section class="hero">
   <div class="wrap">
