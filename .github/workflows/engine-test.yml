@@ -1,0 +1,59 @@
+# Live end-to-end test of the visualiser engine. Runs only on the engine-test branch, never on the live site.
+# Sends real bathroom photos (from Riverside's own portfolio) for Design A and Design B and keeps every result
+# image plus the engine's report (QA verdict, tries, timing) as a downloadable artifact.
+name: engine-test
+on:
+  push:
+    branches: [engine-test]
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Run Design A and B on test photos
+        env:
+          KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVlYXFoY3NwY3Npb2poeG1samZzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEyMDE3MDksImV4cCI6MjEwNjc3NzcwOX0.KjvokuNh_OephhsXjWdugKxdH4fHQ2mEds10qg4eWSY
+        run: |
+          mkdir -p out
+          cat > t.py <<'EOF'
+          import base64, json, os, sys, time, urllib.request, concurrent.futures as cf
+          EP = "https://ueaqhcspcsiojhxmljfs.supabase.co/functions/v1/visualise"
+          KEY = os.environ["KEY"]
+          CDN = "https://cdn.prod.website-files.com/"
+          PHOTOS = {
+            "family1": CDN + "687f8bc8806320c2296ac338/69b0381fef5ea636adeb7f7d_riverside-bathrooms.jpg",
+            "family2": CDN + "687f8bc8806320c2296ac1e3/69b03a0994a95ade3789734b_WEBSITE_0002_Portfolio_6271.jpg",
+            "ensuite1": CDN + "687f8bc8806320c2296ac1e3/69b03a0894a95ade378972fb_WEBSITE_0008_Portfolio_5219.jpg",
+          }
+          def get(u):
+            req = urllib.request.Request(u, headers={"User-Agent": "Mozilla/5.0"})
+            return urllib.request.urlopen(req, timeout=60).read()
+          imgs = {k: base64.b64encode(get(u)).decode() for k, u in PHOTOS.items()}
+          for k, b in imgs.items(): open(f"out/{k}-before.jpg", "wb").write(base64.b64decode(b))
+          def call(name, photo, version, typ):
+            body = json.dumps({"mode": "visualise", "image": imgs[photo], "mime_type": "image/jpeg", "version": version, "type": typ, "run": 1}).encode()
+            req = urllib.request.Request(EP, data=body, method="POST", headers={"Content-Type": "application/json", "apikey": KEY, "Authorization": "Bearer " + KEY})
+            t0 = time.time()
+            try:
+              r = urllib.request.urlopen(req, timeout=170); code = r.status; d = json.loads(r.read())
+            except urllib.error.HTTPError as e:
+              code = e.code; d = json.loads(e.read() or b"{}")
+            except Exception as e:
+              code = 0; d = {"error": str(e)}
+            img = d.pop("image", None)
+            if img: open(f"out/{name}.jpg", "wb").write(base64.b64decode(img))
+            rep = {"test": name, "http": code, "secs": round(time.time() - t0, 1), **d}
+            print(json.dumps(rep)[:1500], flush=True)
+            return rep
+          jobs = [("family1-B1", "family1", "B", "family"), ("family1-B2", "family1", "B", "family"), ("family2-B", "family2", "B", "family"),
+                  ("ensuite1-B", "ensuite1", "B", "ensuite"), ("family1-A", "family1", "A", "family")]
+          with cf.ThreadPoolExecutor(5) as ex:
+            reps = list(ex.map(lambda j: call(*j), jobs))
+          json.dump(reps, open("out/report.json", "w"), indent=1)
+          EOF
+          python3 t.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: engine-test-results
+          path: out/
